@@ -116,7 +116,8 @@ async function handleList(url: URL, env: Env): Promise<Response> {
 
   const sortParam = p.get("sort") ?? "submitted_at";
   const sortCol = VALID_SORTS.has(sortParam) ? sortParam : "submitted_at";
-  const sortDir = sortCol === "ttft_ms" ? "ASC" : "DESC";
+  const dirParam = (p.get("dir") ?? "DESC").toUpperCase();
+  const sortDir = dirParam === "ASC" ? "ASC" : "DESC";
 
   const limit = Math.min(parseInt(p.get("limit") ?? "50"), 200);
   const offset = Math.max(parseInt(p.get("offset") ?? "0"), 0);

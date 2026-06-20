@@ -195,10 +195,11 @@
   <label>Sort</label>
   <select id="f-sort">
     <option value="submitted_at">Latest</option>
-    <option value="decode_tps">Decode TPS ↓</option>
-    <option value="ttft_ms">TTFT ↑</option>
-    <option value="accuracy">Accuracy ↓</option>
+    <option value="decode_tps">Decode TPS</option>
+    <option value="ttft_ms">TTFT</option>
+    <option value="accuracy">Accuracy</option>
   </select>
+  <button id="btn-dir" title="Toggle sort direction" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.3rem 0.6rem;border-radius:4px;cursor:pointer;font:inherit;font-size:13px;">↓</button>
 </div>
 
 <div id="status">Loading…</div>
@@ -234,6 +235,7 @@
   const LIMIT = 50;
   let offset = 0;
   let currentSort = "decode_tps";
+  let currentDir = "DESC";
   let debounceTimer;
 
   const filterIds = ["f-setup_type", "f-topology", "f-framework", "f-benchmark_type", "f-quant_format"];
@@ -248,6 +250,13 @@
     load();
   });
 
+  document.getElementById("btn-dir").addEventListener("click", () => {
+    currentDir = currentDir === "DESC" ? "ASC" : "DESC";
+    document.getElementById("btn-dir").textContent = currentDir === "DESC" ? "↓" : "↑";
+    offset = 0;
+    load();
+  });
+
   document.getElementById("f-model").addEventListener("input", () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => { offset = 0; load(); }, 300);
@@ -255,10 +264,15 @@
 
   document.querySelectorAll("th.sortable").forEach(th => {
     th.addEventListener("click", () => {
-      document.querySelectorAll("th.sortable").forEach(t => t.classList.remove("active"));
-      th.classList.add("active");
-      currentSort = th.dataset.col;
-      document.getElementById("f-sort").value = currentSort;
+      if (currentSort === th.dataset.col) {
+        currentDir = currentDir === "DESC" ? "ASC" : "DESC";
+        document.getElementById("btn-dir").textContent = currentDir === "DESC" ? "↓" : "↑";
+      } else {
+        document.querySelectorAll("th.sortable").forEach(t => t.classList.remove("active"));
+        th.classList.add("active");
+        currentSort = th.dataset.col;
+        document.getElementById("f-sort").value = currentSort;
+      }
       offset = 0;
       load();
     });
@@ -274,7 +288,7 @@
   });
 
   async function load() {
-    const params = new URLSearchParams({ sort: currentSort, limit: LIMIT, offset });
+    const params = new URLSearchParams({ sort: currentSort, dir: currentDir, limit: LIMIT, offset });
 
     const modelVal = document.getElementById("f-model").value.trim();
     if (modelVal) params.set("model", modelVal);
