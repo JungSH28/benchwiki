@@ -1,5 +1,6 @@
 import json
 import sys
+import webbrowser
 
 import click
 from rich.console import Console
@@ -7,7 +8,7 @@ from rich.table import Table
 
 from .benchmark import run_inference
 from .detect import detect_hardware
-from .submit import API_BASE, build_payload, submit
+from .submit import API_BASE, WEB_BASE, build_payload, build_submit_url, submit
 
 console = Console()
 
@@ -54,13 +55,15 @@ def detect(as_json: bool):
 @click.option("--context-tokens", type=int, default=512, show_default=True)
 @click.option("--max-tokens", type=int, default=256, show_default=True)
 @click.option("--no-submit", is_flag=True, help="Run benchmark but skip submission")
+@click.option("--no-browser", is_flag=True, help="Submit directly via API instead of opening browser")
 @click.option("--api-base", default=API_BASE, show_default=True)
+@click.option("--web-base", default=WEB_BASE, show_default=True)
 def run(
     model, endpoint, api_key, framework, framework_version,
     quant_format, quant_level, params_b, context_tokens, max_tokens,
-    no_submit, api_base,
+    no_submit, no_browser, api_base, web_base,
 ):
-    """Detect hardware, run LLM_INFERENCE benchmark, and optionally submit."""
+    """Detect hardware, run LLM_INFERENCE benchmark, and submit results."""
     console.print("[bold]Detecting hardware...[/bold]")
     hw = detect_hardware()
     console.print(f"  Topology: [cyan]{hw['topology']}[/cyan]  "
@@ -101,15 +104,20 @@ def run(
 
     payload = build_payload(hw, runtime, model_meta, results)
 
-    if not click.confirm("\nSubmit to BenchWiki?"):
-        return
-
-    try:
-        resp = submit(payload, api_base=api_base)
-        console.print(f"\n[green]Submitted![/green]  id={resp.get('id')}")
-    except Exception as exc:
-        console.print(f"[red]Submission failed:[/red] {exc}")
-        sys.exit(1)
+    if no_browser:
+        if not click.confirm("\nSubmit to BenchWiki?"):
+            return
+        try:
+            resp = submit(payload, api_base=api_base)
+            console.print(f"\n[green]Submitted![/green]  id={resp.get('id')}")
+        except Exception as exc:
+            console.print(f"[red]Submission failed:[/red] {exc}")
+            sys.exit(1)
+    else:
+        url = build_submit_url(payload, web_base=web_base)
+        console.print(f"\n[bold]Opening browser to review and submit...[/bold]")
+        console.print(f"  [dim]{url[:80]}...[/dim]" if len(url) > 80 else f"  [dim]{url}[/dim]")
+        webbrowser.open(url)
 
 
 def _print_results(results: dict):

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submit — BenchWiki</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2d3148;
+      --text: #e2e4f0;
+      --muted: #6b7280;
+      --accent: #6c8fff;
+      --green: #4ade80;
+      --red: #f87171;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-monospace, "Cascadia Code", "Fira Code", monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 0 1rem 3rem;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 1.5rem 0 1rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+
+    header a { color: var(--accent); text-decoration: none; font-size: 1.1rem; }
+    header a:hover { text-decoration: underline; }
+    header h1 { font-size: 1rem; color: var(--text); }
+
+    #error-msg {
+      background: #2a1010;
+      border: 1px solid var(--red);
+      color: var(--red);
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+
+    section { margin-bottom: 1.5rem; }
+
+    h2 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+    }
+
+    .kv-grid {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 0.35rem 0.75rem;
+    }
+
+    .kv-grid .k { color: var(--muted); }
+    .kv-grid .v { color: var(--text); }
+
+    .highlight { color: var(--green); font-weight: 600; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 0.6rem 0.75rem;
+      align-items: center;
+    }
+
+    .form-grid label { color: var(--muted); }
+
+    .form-grid input,
+    .form-grid select,
+    .form-grid textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.35rem 0.5rem;
+      border-radius: 4px;
+      font: inherit;
+      font-size: 12px;
+      width: 100%;
+    }
+
+    .form-grid input:focus,
+    .form-grid select:focus,
+    .form-grid textarea:focus {
+      outline: 1px solid var(--accent);
+    }
+
+    .form-grid .hint {
+      grid-column: 2;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: -0.3rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      align-items: center;
+    }
+
+    button {
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 5px;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid transparent;
+    }
+
+    #btn-submit {
+      background: var(--accent);
+      color: #0f1117;
+      font-weight: 600;
+    }
+
+    #btn-submit:hover { opacity: 0.9; }
+    #btn-submit:disabled { opacity: 0.4; cursor: default; }
+
+    #btn-cancel {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--muted);
+    }
+
+    #btn-cancel:hover { border-color: var(--text); color: var(--text); }
+
+    #status-msg {
+      font-size: 12px;
+      color: var(--muted);
+      display: none;
+    }
+
+    #success {
+      display: none;
+      background: #0d2018;
+      border: 1px solid var(--green);
+      border-radius: 6px;
+      padding: 1.25rem 1rem;
+      margin-top: 1.5rem;
+    }
+
+    #success p { color: var(--green); margin-bottom: 0.5rem; }
+    #success a { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="/">BenchWiki</a>
+  <h1>Review &amp; Submit</h1>
+</header>
+
+<div id="error-msg"></div>
+
+<section id="results-section">
+  <h2>Benchmark Results</h2>
+  <div class="card">
+    <div class="kv-grid" id="results-kv"></div>
+  </div>
+</section>
+
+<section id="hardware-section">
+  <h2>Hardware</h2>
+  <div class="card">
+    <div class="kv-grid" id="hw-kv"></div>
+  </div>
+</section>
+
+<section id="edit-section">
+  <h2>Edit Metadata <span style="color:var(--muted);font-weight:400;text-transform:none;font-size:11px">(measurements are read-only)</span></h2>
+  <div class="card">
+    <div class="form-grid">
+      <label>Model name</label>
+      <input id="e-model-name" type="text" />
+
+      <label>Base model</label>
+      <input id="e-base-model" type="text" placeholder="e.g. Qwen3-27B" />
+
+      <label>Quant format</label>
+      <select id="e-quant-format">
+        <option value="">—</option>
+        <option value="GGUF">GGUF</option>
+        <option value="MLX">MLX</option>
+        <option value="AWQ">AWQ</option>
+        <option value="GPTQ">GPTQ</option>
+        <option value="FP8">FP8</option>
+        <option value="BF16">BF16</option>
+      </select>
+
+      <label>Quant level</label>
+      <input id="e-quant-level" type="text" placeholder="e.g. Q4_K_M / 4bit" />
+
+      <label>Framework</label>
+      <select id="e-framework">
+        <option value="">—</option>
+        <option value="Ollama">Ollama</option>
+        <option value="MLX">MLX</option>
+        <option value="vLLM">vLLM</option>
+        <option value="llama.cpp">llama.cpp</option>
+        <option value="TensorRT-LLM">TensorRT-LLM</option>
+        <option value="LM Studio">LM Studio</option>
+        <option value="oMLX">oMLX</option>
+      </select>
+
+      <label>Framework version</label>
+      <input id="e-framework-version" type="text" placeholder="e.g. 0.24.0" />
+
+      <label>Notes</label>
+      <textarea id="e-notes" rows="2" placeholder="optional — other workloads running, cooling setup, etc."></textarea>
+    </div>
+  </div>
+</section>
+
+<div class="actions">
+  <button id="btn-submit">Submit to BenchWiki</button>
+  <button id="btn-cancel" onclick="window.location.href='/'">Cancel</button>
+  <span id="status-msg"></span>
+</div>
+
+<div id="success">
+  <p>Submitted!</p>
+  <p>ID: <span id="success-id"></span></p>
+  <p style="margin-top:0.5rem"><a href="/">← Back to results</a></p>
+</div>
+
+<script>
+  const API = "https://benchwiki-api.workers.dev";
+
+  function showError(msg) {
+    const el = document.getElementById("error-msg");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  function kv(container, label, value, highlight = false) {
+    const k = document.createElement("span");
+    k.className = "k";
+    k.textContent = label;
+    const v = document.createElement("span");
+    v.className = highlight ? "v highlight" : "v";
+    v.textContent = value ?? "—";
+    container.appendChild(k);
+    container.appendChild(v);
+  }
+
+  // Decode base64url from fragment
+  let payload = null;
+  try {
+    const hash = location.hash.slice(1);
+    if (!hash) throw new Error("No data in URL fragment.");
+    // base64url → base64
+    const b64 = hash.replace(/-/g, "+").replace(/_/g, "/");
+    const padding = (4 - b64.length % 4) % 4;
+    const json = atob(b64 + "=".repeat(padding));
+    payload = JSON.parse(json);
+  } catch (e) {
+    showError(`Could not decode payload: ${e.message}`);
+  }
+
+  if (payload) {
+    const bench   = payload.benchmark ?? {};
+    const results = bench.results ?? {};
+    const config  = bench.config ?? {};
+    const setup   = payload.setup ?? {};
+    const hw      = setup.hardware ?? {};
+    const rt      = setup.runtime ?? {};
+    const model   = setup.model ?? {};
+
+    // Results card
+    const rKV = document.getElementById("results-kv");
+    kv(rKV, "Benchmark type", bench.type);
+    if (results.ttft_ms     != null) kv(rKV, "TTFT",        `${results.ttft_ms} ms`, true);
+    if (results.decode_tps  != null) kv(rKV, "Decode TPS",  `${results.decode_tps} tok/s`, true);
+    if (results.peak_memory_gb != null) kv(rKV, "Peak memory", `${results.peak_memory_gb} GB`);
+    if (config.context_tokens != null)  kv(rKV, "Context",   `${config.context_tokens} tokens`);
+
+    // Hardware card
+    const hKV = document.getElementById("hw-kv");
+    kv(hKV, "Topology",   hw.topology);
+    kv(hKV, "CPU",        hw.cpu?.model);
+    kv(hKV, "RAM",        hw.memory ? `${hw.memory.ram_gb} GB (${hw.memory.type})` : null);
+    (hw.gpu ?? []).forEach((g, i) =>
+      kv(hKV, `GPU[${i}]`, `${g.model}${g.vram_gb != null ? `  ${g.vram_gb} GB` : ""}`)
+    );
+    kv(hKV, "OS", hw.os ? `${hw.os.name} ${hw.os.version}` : null);
+
+    // Pre-fill editable fields
+    document.getElementById("e-model-name").value       = model.name ?? "";
+    document.getElementById("e-base-model").value       = model.base_model ?? "";
+    document.getElementById("e-quant-format").value     = model.quant_format ?? "";
+    document.getElementById("e-quant-level").value      = model.quant_level ?? "";
+    document.getElementById("e-framework").value        = rt.framework ?? "";
+    document.getElementById("e-framework-version").value = rt.version ?? "";
+  }
+
+  document.getElementById("btn-submit").addEventListener("click", async () => {
+    if (!payload) return;
+
+    const btn    = document.getElementById("btn-submit");
+    const status = document.getElementById("status-msg");
+    btn.disabled = true;
+    status.style.display = "inline";
+    status.textContent = "Submitting…";
+
+    // Apply edits back into payload
+    const edited = JSON.parse(JSON.stringify(payload));
+    edited.setup.model = edited.setup.model ?? {};
+    edited.setup.model.name         = document.getElementById("e-model-name").value.trim() || null;
+    edited.setup.model.base_model   = document.getElementById("e-base-model").value.trim() || null;
+    edited.setup.model.quant_format = document.getElementById("e-quant-format").value || null;
+    edited.setup.model.quant_level  = document.getElementById("e-quant-level").value.trim() || null;
+    edited.setup.runtime = edited.setup.runtime ?? {};
+    edited.setup.runtime.framework  = document.getElementById("e-framework").value || null;
+    edited.setup.runtime.version    = document.getElementById("e-framework-version").value.trim() || null;
+
+    const notes = document.getElementById("e-notes").value.trim();
+    if (notes) {
+      edited.benchmark = edited.benchmark ?? {};
+      edited.benchmark.extended = { notes };
+    }
+
+    try {
+      const res = await fetch(`${API}/api/submissions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(edited),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
+
+      document.getElementById("success-id").textContent = data.id;
+      document.getElementById("success").style.display = "block";
+      document.querySelector(".actions").style.display = "none";
+      status.style.display = "none";
+    } catch (e) {
+      status.textContent = "";
+      status.style.display = "none";
+      showError(`Submission failed: ${e.message}`);
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

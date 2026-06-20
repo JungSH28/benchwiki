@@ -1,9 +1,12 @@
+import base64
 import datetime
+import json
 from importlib.metadata import version
 
 import httpx
 
 API_BASE = "https://benchwiki-api.workers.dev"
+WEB_BASE = "https://benchwiki.pages.dev"
 
 
 def build_payload(
@@ -34,6 +37,14 @@ def build_payload(
             "results": {k: v for k, v in results.items() if k != "output_tokens"},
         },
     }
+
+
+def build_submit_url(payload: dict, web_base: str = WEB_BASE) -> str:
+    """Encode payload as base64url and return the /submit review URL."""
+    encoded = base64.urlsafe_b64encode(
+        json.dumps(payload, separators=(",", ":")).encode()
+    ).decode().rstrip("=")
+    return f"{web_base.rstrip('/')}/submit#{encoded}"
 
 
 def submit(payload: dict, api_base: str = API_BASE) -> dict:
