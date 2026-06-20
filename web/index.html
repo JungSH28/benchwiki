@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BenchWiki</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2d3148;
+      --text: #e2e4f0;
+      --muted: #6b7280;
+      --accent: #6c8fff;
+      --green: #4ade80;
+      --yellow: #facc15;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-monospace, "Cascadia Code", "Fira Code", monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 0 1rem;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 1.5rem 0 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 { font-size: 1.25rem; color: var(--accent); letter-spacing: -0.5px; }
+    header p  { color: var(--muted); font-size: 12px; }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 1rem 0;
+    }
+
+    .filters select,
+    .filters input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+      font: inherit;
+      font-size: 12px;
+    }
+
+    .filters select:focus,
+    .filters input:focus {
+      outline: 1px solid var(--accent);
+    }
+
+    .filters label { color: var(--muted); font-size: 11px; align-self: center; }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    th.sortable { cursor: pointer; user-select: none; }
+    th.sortable:hover { color: var(--text); }
+    th.active { color: var(--accent); }
+
+    td {
+      padding: 0.45rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tr:hover td { background: var(--surface); }
+
+    .tps  { color: var(--green);  font-weight: 600; }
+    .ttft { color: var(--yellow); }
+    .muted { color: var(--muted); }
+    .tag {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 11px;
+    }
+
+    #status { color: var(--muted); padding: 1rem 0; font-size: 12px; }
+
+    .pager {
+      display: flex;
+      gap: 0.5rem;
+      padding: 1rem 0;
+      align-items: center;
+    }
+
+    .pager button {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.3rem 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+    }
+
+    .pager button:hover { border-color: var(--accent); }
+    .pager button:disabled { opacity: 0.3; cursor: default; }
+    .pager span { color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>BenchWiki</h1>
+  <p>Community AI inference benchmarks</p>
+</header>
+
+<div class="filters">
+  <label>Type</label>
+  <select id="f-setup_type">
+    <option value="">All</option>
+    <option value="LOCAL">LOCAL</option>
+    <option value="CLOUD">CLOUD</option>
+  </select>
+
+  <label>Topology</label>
+  <select id="f-topology">
+    <option value="">All</option>
+    <option value="UNIFIED">UNIFIED (Apple)</option>
+    <option value="GPU_SINGLE">GPU_SINGLE</option>
+    <option value="GPU_MULTI">GPU_MULTI</option>
+    <option value="CPU_GPU_HYBRID">HYBRID</option>
+    <option value="CPU_ONLY">CPU_ONLY</option>
+  </select>
+
+  <label>Framework</label>
+  <select id="f-framework">
+    <option value="">All</option>
+    <option value="Ollama">Ollama</option>
+    <option value="MLX">MLX</option>
+    <option value="vLLM">vLLM</option>
+    <option value="llama.cpp">llama.cpp</option>
+    <option value="TensorRT-LLM">TensorRT-LLM</option>
+    <option value="LM Studio">LM Studio</option>
+    <option value="oMLX">oMLX</option>
+  </select>
+
+  <label>Benchmark</label>
+  <select id="f-benchmark_type">
+    <option value="">All</option>
+    <option value="LLM_INFERENCE">LLM_INFERENCE</option>
+    <option value="LLM_QUALITY">LLM_QUALITY</option>
+    <option value="LLM_CLOUD_LATENCY">CLOUD_LATENCY</option>
+    <option value="IMAGE_GEN">IMAGE_GEN</option>
+    <option value="SPEECH_RECOGNITION">SPEECH</option>
+    <option value="EMBEDDING">EMBEDDING</option>
+  </select>
+
+  <label>Quant</label>
+  <select id="f-quant_format">
+    <option value="">All</option>
+    <option value="GGUF">GGUF</option>
+    <option value="MLX">MLX</option>
+    <option value="AWQ">AWQ</option>
+    <option value="GPTQ">GPTQ</option>
+    <option value="FP8">FP8</option>
+    <option value="BF16">BF16</option>
+  </select>
+
+  <label>Model</label>
+  <input id="f-model" type="search" placeholder="search model…" style="width:160px" />
+
+  <label>Sort</label>
+  <select id="f-sort">
+    <option value="submitted_at">Latest</option>
+    <option value="decode_tps">Decode TPS ↓</option>
+    <option value="ttft_ms">TTFT ↑</option>
+    <option value="accuracy">Accuracy ↓</option>
+  </select>
+</div>
+
+<div id="status">Loading…</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Quant</th>
+        <th>Hardware</th>
+        <th>Framework</th>
+        <th class="sortable active" data-col="decode_tps">Decode TPS</th>
+        <th class="sortable" data-col="ttft_ms">TTFT (ms)</th>
+        <th>Mem (GB)</th>
+        <th>Ctx</th>
+        <th>Accuracy</th>
+        <th>Submitted</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<div class="pager">
+  <button id="btn-prev" disabled>← Prev</button>
+  <span id="pager-info"></span>
+  <button id="btn-next">Next →</button>
+</div>
+
+<script>
+  const API = "https://benchwiki-api.workers.dev";
+  const LIMIT = 50;
+  let offset = 0;
+  let currentSort = "decode_tps";
+  let debounceTimer;
+
+  const filterIds = ["f-setup_type", "f-topology", "f-framework", "f-benchmark_type", "f-quant_format"];
+
+  filterIds.forEach(id => {
+    document.getElementById(id).addEventListener("change", () => { offset = 0; load(); });
+  });
+
+  document.getElementById("f-sort").addEventListener("change", e => {
+    currentSort = e.target.value;
+    offset = 0;
+    load();
+  });
+
+  document.getElementById("f-model").addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => { offset = 0; load(); }, 300);
+  });
+
+  document.querySelectorAll("th.sortable").forEach(th => {
+    th.addEventListener("click", () => {
+      document.querySelectorAll("th.sortable").forEach(t => t.classList.remove("active"));
+      th.classList.add("active");
+      currentSort = th.dataset.col;
+      document.getElementById("f-sort").value = currentSort;
+      offset = 0;
+      load();
+    });
+  });
+
+  document.getElementById("btn-prev").addEventListener("click", () => {
+    if (offset >= LIMIT) { offset -= LIMIT; load(); }
+  });
+
+  document.getElementById("btn-next").addEventListener("click", () => {
+    offset += LIMIT;
+    load();
+  });
+
+  async function load() {
+    const params = new URLSearchParams({ sort: currentSort, limit: LIMIT, offset });
+
+    const modelVal = document.getElementById("f-model").value.trim();
+    if (modelVal) params.set("model", modelVal);
+
+    filterIds.forEach(id => {
+      const key = id.replace("f-", "");
+      const val = document.getElementById(id).value;
+      if (val) params.set(key, val);
+    });
+
+    document.getElementById("status").textContent = "Loading…";
+
+    try {
+      const res = await fetch(`${API}/api/submissions?${params}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      render(data.results ?? []);
+      document.getElementById("status").textContent =
+        `Showing ${offset + 1}–${offset + (data.results?.length ?? 0)}`;
+      document.getElementById("btn-prev").disabled = offset === 0;
+      document.getElementById("btn-next").disabled = (data.results?.length ?? 0) < LIMIT;
+    } catch (err) {
+      document.getElementById("status").textContent = `Error: ${err.message}`;
+    }
+  }
+
+  function render(rows) {
+    const tbody = document.getElementById("tbody");
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="10" class="muted" style="padding:2rem;text-align:center">No results</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.map(r => {
+      const hw = r.topology === "UNIFIED"
+        ? `${r.cpu_model ?? "Apple"} (${r.ram_gb ?? "?"}GB)`
+        : r.gpu_model
+          ? `${r.gpu_model} (${r.vram_gb ?? "?"}GB)`
+          : r.cpu_model ?? "—";
+
+      const tps   = r.decode_tps  != null ? `<span class="tps">${r.decode_tps.toFixed(1)}</span>` : `<span class="muted">—</span>`;
+      const ttft  = r.ttft_ms     != null ? `<span class="ttft">${r.ttft_ms}</span>` : `<span class="muted">—</span>`;
+      const mem   = r.peak_memory_gb != null ? r.peak_memory_gb.toFixed(1) : `<span class="muted">—</span>`;
+      const ctx   = r.context_tokens ?? `<span class="muted">—</span>`;
+      const acc   = r.accuracy    != null ? `${(r.accuracy * 100).toFixed(1)}%` : `<span class="muted">—</span>`;
+      const quant = r.quant_format || r.quant_level
+        ? `<span class="tag">${[r.quant_format, r.quant_level].filter(Boolean).join(" ")}</span>`
+        : `<span class="muted">—</span>`;
+      const date  = r.submitted_at ? r.submitted_at.slice(0, 10) : "—";
+      const model = r.model_name ?? r.model_string ?? "—";
+
+      return `<tr>
+        <td title="${model}">${model.length > 28 ? model.slice(0, 26) + "…" : model}</td>
+        <td>${quant}</td>
+        <td title="${hw}">${hw.length > 24 ? hw.slice(0, 22) + "…" : hw}</td>
+        <td><span class="tag">${r.framework ?? "—"}</span></td>
+        <td>${tps}</td>
+        <td>${ttft}</td>
+        <td>${mem}</td>
+        <td class="muted">${ctx}</td>
+        <td>${acc}</td>
+        <td class="muted">${date}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  load();
+</script>
+</body>
+</html>
