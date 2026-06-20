@@ -5,8 +5,8 @@ from importlib.metadata import version
 
 import httpx
 
-API_BASE = "https://benchwiki-api.workers.dev"
-WEB_BASE = "https://benchwiki.pages.dev"
+API_BASE = "https://benchwiki-api.benchwiki.workers.dev"
+WEB_BASE = "https://benchwiki.pages.dev"  # prod; preview: 3097fa52.benchwiki.pages.dev
 
 
 def build_payload(
