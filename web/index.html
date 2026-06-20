@@ -24,52 +24,99 @@
       font-family: ui-monospace, "Cascadia Code", "Fira Code", monospace;
       font-size: 13px;
       line-height: 1.5;
-      padding: 0 1rem;
     }
 
     header {
-      display: flex;
-      align-items: baseline;
-      gap: 1rem;
-      padding: 1.5rem 0 1rem;
+      text-align: center;
+      padding: 2.5rem 1rem 1.5rem;
       border-bottom: 1px solid var(--border);
     }
+    header h1 { font-size: 1.7rem; color: var(--accent); letter-spacing: -1px; margin-bottom: 0.3rem; }
+    header p { color: var(--muted); font-size: 12px; margin-bottom: 1.25rem; }
 
-    header h1 { font-size: 1.25rem; color: var(--accent); letter-spacing: -0.5px; }
-    header p  { color: var(--muted); font-size: 12px; }
+    #search-wrap {
+      max-width: 560px;
+      margin: 0 auto;
+      position: relative;
+    }
+    #search-icon {
+      position: absolute;
+      left: 0.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 16px;
+      pointer-events: none;
+    }
+    #q {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.6rem 1rem 0.6rem 2.4rem;
+      border-radius: 8px;
+      font: inherit;
+      font-size: 14px;
+    }
+    #q:focus { outline: 1px solid var(--accent); }
+    #q::placeholder { color: var(--muted); }
+
+    .tabs {
+      display: flex;
+      padding: 0 1rem;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      gap: 0;
+    }
+    .tab {
+      padding: 0.65rem 1rem;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      user-select: none;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
     .filters {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
-      padding: 1rem 0;
+      padding: 0.6rem 1rem;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
     }
-
-    .filters select,
-    .filters input {
+    .filters label { color: var(--muted); font-size: 11px; }
+    .filters select {
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 0.3rem 0.5rem;
+      padding: 0.25rem 0.5rem;
       border-radius: 4px;
       font: inherit;
       font-size: 12px;
     }
-
-    .filters select:focus,
-    .filters input:focus {
-      outline: 1px solid var(--accent);
+    .filters select:focus { outline: 1px solid var(--accent); }
+    .spacer { flex: 1; }
+    #btn-dir {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
     }
+    #btn-dir:hover { border-color: var(--accent); }
 
-    .filters label { color: var(--muted); font-size: 11px; align-self: center; }
+    #status { color: var(--muted); padding: 0.6rem 1rem; font-size: 12px; min-height: 2rem; }
 
-    .table-wrap { overflow-x: auto; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
+    .table-wrap { overflow-x: auto; padding: 0 1rem; }
+    table { width: 100%; border-collapse: collapse; }
     th {
       text-align: left;
       padding: 0.5rem 0.75rem;
@@ -80,20 +127,17 @@
       border-bottom: 1px solid var(--border);
       white-space: nowrap;
     }
-
     th.sortable { cursor: pointer; user-select: none; }
     th.sortable:hover { color: var(--text); }
     th.active { color: var(--accent); }
-
     td {
       padding: 0.45rem 0.75rem;
       border-bottom: 1px solid var(--border);
       white-space: nowrap;
     }
-
     tr:hover td { background: var(--surface); }
 
-    .tps  { color: var(--green);  font-weight: 600; }
+    .tps  { color: var(--green); font-weight: 600; }
     .ttft { color: var(--yellow); }
     .muted { color: var(--muted); }
     .tag {
@@ -105,15 +149,12 @@
       font-size: 11px;
     }
 
-    #status { color: var(--muted); padding: 1rem 0; font-size: 12px; }
-
     .pager {
       display: flex;
       gap: 0.5rem;
-      padding: 1rem 0;
+      padding: 1rem;
       align-items: center;
     }
-
     .pager button {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -124,7 +165,6 @@
       font: inherit;
       font-size: 12px;
     }
-
     .pager button:hover { border-color: var(--accent); }
     .pager button:disabled { opacity: 0.3; cursor: default; }
     .pager span { color: var(--muted); }
@@ -135,17 +175,23 @@
 <header>
   <h1>BenchWiki</h1>
   <p>Community AI inference benchmarks</p>
+  <div id="search-wrap">
+    <span id="search-icon">⌕</span>
+    <input id="q" type="search" placeholder="Search model, hardware…" autocomplete="off" />
+  </div>
 </header>
 
-<div class="filters">
-  <label>Type</label>
-  <select id="f-setup_type">
-    <option value="">All</option>
-    <option value="LOCAL">LOCAL</option>
-    <option value="CLOUD">CLOUD</option>
-  </select>
+<div class="tabs">
+  <div class="tab active" data-tab="LLM_INFERENCE">LLM Inference</div>
+  <div class="tab" data-tab="LLM_QUALITY">LLM Quality</div>
+  <div class="tab" data-tab="LLM_CLOUD_LATENCY">Cloud Latency</div>
+  <div class="tab" data-tab="IMAGE_GEN">Image Gen</div>
+  <div class="tab" data-tab="SPEECH_RECOGNITION">Speech</div>
+  <div class="tab" data-tab="EMBEDDING">Embedding</div>
+</div>
 
-  <label>Topology</label>
+<div class="filters">
+  <label id="lbl-topology">Topology</label>
   <select id="f-topology">
     <option value="">All</option>
     <option value="UNIFIED">UNIFIED (Apple)</option>
@@ -155,7 +201,7 @@
     <option value="CPU_ONLY">CPU_ONLY</option>
   </select>
 
-  <label>Framework</label>
+  <label id="lbl-framework">Framework</label>
   <select id="f-framework">
     <option value="">All</option>
     <option value="Ollama">Ollama</option>
@@ -167,18 +213,7 @@
     <option value="oMLX">oMLX</option>
   </select>
 
-  <label>Benchmark</label>
-  <select id="f-benchmark_type">
-    <option value="">All</option>
-    <option value="LLM_INFERENCE">LLM_INFERENCE</option>
-    <option value="LLM_QUALITY">LLM_QUALITY</option>
-    <option value="LLM_CLOUD_LATENCY">CLOUD_LATENCY</option>
-    <option value="IMAGE_GEN">IMAGE_GEN</option>
-    <option value="SPEECH_RECOGNITION">SPEECH</option>
-    <option value="EMBEDDING">EMBEDDING</option>
-  </select>
-
-  <label>Quant</label>
+  <label id="lbl-quant">Quant</label>
   <select id="f-quant_format">
     <option value="">All</option>
     <option value="GGUF">GGUF</option>
@@ -189,37 +224,27 @@
     <option value="BF16">BF16</option>
   </select>
 
-  <label>Model</label>
-  <input id="f-model" type="search" placeholder="search model…" style="width:160px" />
-
-  <label>Sort</label>
-  <select id="f-sort">
-    <option value="submitted_at">Latest</option>
-    <option value="decode_tps">Decode TPS</option>
-    <option value="ttft_ms">TTFT</option>
-    <option value="accuracy">Accuracy</option>
+  <label id="lbl-provider" style="display:none">Provider</label>
+  <select id="f-provider" style="display:none">
+    <option value="">All</option>
+    <option value="OpenAI">OpenAI</option>
+    <option value="Anthropic">Anthropic</option>
+    <option value="Together">Together</option>
+    <option value="Fireworks">Fireworks</option>
+    <option value="Groq">Groq</option>
+    <option value="Gemini">Gemini</option>
   </select>
-  <button id="btn-dir" title="Toggle sort direction" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.3rem 0.6rem;border-radius:4px;cursor:pointer;font:inherit;font-size:13px;">↓</button>
+
+  <div class="spacer"></div>
+  <label style="color:var(--muted);font-size:11px">Dir</label>
+  <button id="btn-dir">↓</button>
 </div>
 
 <div id="status">Loading…</div>
 
 <div class="table-wrap">
   <table>
-    <thead>
-      <tr>
-        <th>Model</th>
-        <th>Quant</th>
-        <th>Hardware</th>
-        <th>Framework</th>
-        <th class="sortable active" data-col="decode_tps">Decode TPS</th>
-        <th class="sortable" data-col="ttft_ms">TTFT (ms)</th>
-        <th>Mem (GB)</th>
-        <th>Ctx</th>
-        <th>Accuracy</th>
-        <th>Submitted</th>
-      </tr>
-    </thead>
+    <thead><tr id="thead-row"></tr></thead>
     <tbody id="tbody"></tbody>
   </table>
 </div>
@@ -234,67 +259,242 @@
   const API = "https://benchwiki-api.benchwiki.workers.dev";
   const LIMIT = 50;
   let offset = 0;
+  let currentTab = "LLM_INFERENCE";
   let currentSort = "decode_tps";
   let currentDir = "DESC";
   let debounceTimer;
 
-  const filterIds = ["f-setup_type", "f-topology", "f-framework", "f-benchmark_type", "f-quant_format"];
+  function dash() { return `<span class="muted">—</span>`; }
 
-  filterIds.forEach(id => {
-    document.getElementById(id).addEventListener("change", () => { offset = 0; load(); });
+  function trunc(s, n) {
+    if (!s || s === "—") return dash();
+    return s.length > n ? `<span title="${s}">${s.slice(0, n - 1)}…</span>` : s;
+  }
+
+  function tagCell(v) { return v ? `<span class="tag">${v}</span>` : dash(); }
+
+  function modelCell(r) {
+    const m = r.model_name ?? r.model_string ?? "—";
+    return trunc(m, 30);
+  }
+
+  function quantCell(r) {
+    const q = [r.quant_format, r.quant_level].filter(Boolean).join(" ");
+    return q ? `<span class="tag">${q}</span>` : dash();
+  }
+
+  function hwCell(r) {
+    let hw;
+    if (r.topology === "UNIFIED") hw = `${r.cpu_model ?? "Apple"} (${r.ram_gb ?? "?"}GB unified)`;
+    else if (r.gpu_model) hw = `${r.gpu_model}${r.vram_gb != null ? ` ${r.vram_gb}GB` : ""}`;
+    else hw = r.cpu_model ?? "—";
+    return trunc(hw, 28);
+  }
+
+  function dateCell(r) {
+    return `<span class="muted">${r.submitted_at ? r.submitted_at.slice(0, 10) : "—"}</span>`;
+  }
+
+  // Tab configs: cols = [{label, sortKey?}], render returns array of cell HTML strings
+  const TABS = {
+    LLM_INFERENCE: {
+      sortDefault: "decode_tps", dirDefault: "DESC",
+      cols: [
+        { label: "Model" }, { label: "Quant" }, { label: "Hardware" }, { label: "Framework" },
+        { label: "TPS", sortKey: "decode_tps" },
+        { label: "TTFT (ms)", sortKey: "ttft_ms" },
+        { label: "Mem (GB)" }, { label: "Ctx" },
+        { label: "Date", sortKey: "submitted_at" },
+      ],
+      render(r) {
+        return [
+          modelCell(r), quantCell(r), hwCell(r), tagCell(r.framework),
+          r.decode_tps  != null ? `<span class="tps">${r.decode_tps.toFixed(1)}</span>` : dash(),
+          r.ttft_ms     != null ? `<span class="ttft">${r.ttft_ms}</span>` : dash(),
+          r.peak_memory_gb != null ? r.peak_memory_gb.toFixed(1) : dash(),
+          r.context_tokens != null ? `<span class="muted">${r.context_tokens}</span>` : dash(),
+          dateCell(r),
+        ];
+      },
+    },
+    LLM_QUALITY: {
+      sortDefault: "accuracy", dirDefault: "DESC",
+      cols: [
+        { label: "Model" }, { label: "Quant" }, { label: "Hardware" }, { label: "Framework" },
+        { label: "Benchmark" },
+        { label: "Accuracy", sortKey: "accuracy" },
+        { label: "Date", sortKey: "submitted_at" },
+      ],
+      render(r) {
+        return [
+          modelCell(r), quantCell(r), hwCell(r), tagCell(r.framework),
+          r.benchmark_name ?? dash(),
+          r.accuracy != null ? `${(r.accuracy * 100).toFixed(1)}%` : dash(),
+          dateCell(r),
+        ];
+      },
+    },
+    LLM_CLOUD_LATENCY: {
+      sortDefault: "ttft_ms", dirDefault: "ASC",
+      cols: [
+        { label: "Provider" }, { label: "Model" }, { label: "Region" },
+        { label: "TTFT (ms)", sortKey: "ttft_ms" },
+        { label: "TPS", sortKey: "decode_tps" },
+        { label: "Cost/1M" }, { label: "Observed" },
+      ],
+      render(r) {
+        return [
+          tagCell(r.provider),
+          trunc(r.model_string ?? "—", 32),
+          r.region ? `<span class="muted">${r.region}</span>` : dash(),
+          r.ttft_ms    != null ? `<span class="ttft">${r.ttft_ms}</span>` : dash(),
+          r.decode_tps != null ? `<span class="tps">${r.decode_tps.toFixed(1)}</span>` : dash(),
+          r.cost_per_1m_tokens != null ? `$${r.cost_per_1m_tokens.toFixed(3)}` : dash(),
+          r.observed_at ? `<span class="muted">${r.observed_at.slice(0, 10)}</span>` : dash(),
+        ];
+      },
+    },
+    IMAGE_GEN: {
+      sortDefault: "submitted_at", dirDefault: "DESC",
+      cols: [
+        { label: "Model" }, { label: "Hardware" }, { label: "Framework" },
+        { label: "Steps/sec" },
+        { label: "Date", sortKey: "submitted_at" },
+      ],
+      render(r) {
+        return [modelCell(r), hwCell(r), tagCell(r.framework), dash(), dateCell(r)];
+      },
+    },
+    SPEECH_RECOGNITION: {
+      sortDefault: "accuracy", dirDefault: "DESC",
+      cols: [
+        { label: "Model" }, { label: "Hardware" }, { label: "Framework" },
+        { label: "Accuracy", sortKey: "accuracy" },
+        { label: "Date", sortKey: "submitted_at" },
+      ],
+      render(r) {
+        return [
+          modelCell(r), hwCell(r), tagCell(r.framework),
+          r.accuracy != null ? `${(r.accuracy * 100).toFixed(1)}%` : dash(),
+          dateCell(r),
+        ];
+      },
+    },
+    EMBEDDING: {
+      sortDefault: "decode_tps", dirDefault: "DESC",
+      cols: [
+        { label: "Model" }, { label: "Hardware" }, { label: "Framework" },
+        { label: "TPS", sortKey: "decode_tps" },
+        { label: "Date", sortKey: "submitted_at" },
+      ],
+      render(r) {
+        return [
+          modelCell(r), hwCell(r), tagCell(r.framework),
+          r.decode_tps != null ? `<span class="tps">${r.decode_tps.toFixed(1)}</span>` : dash(),
+          dateCell(r),
+        ];
+      },
+    },
+  };
+
+  function buildHeader() {
+    const cfg = TABS[currentTab];
+    const row = document.getElementById("thead-row");
+    row.innerHTML = cfg.cols.map(col => {
+      if (col.sortKey) {
+        const isActive = currentSort === col.sortKey;
+        const arrow = isActive ? (currentDir === "DESC" ? " ↓" : " ↑") : "";
+        return `<th class="sortable${isActive ? " active" : ""}" data-col="${col.sortKey}">${col.label}${arrow}</th>`;
+      }
+      return `<th>${col.label}</th>`;
+    }).join("");
+
+    row.querySelectorAll("th.sortable").forEach(th => {
+      th.addEventListener("click", () => {
+        if (currentSort === th.dataset.col) {
+          currentDir = currentDir === "DESC" ? "ASC" : "DESC";
+        } else {
+          currentSort = th.dataset.col;
+          currentDir = "DESC";
+        }
+        document.getElementById("btn-dir").textContent = currentDir === "DESC" ? "↓" : "↑";
+        offset = 0;
+        buildHeader();
+        load();
+      });
+    });
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    const cfg = TABS[tab];
+    currentSort = cfg.sortDefault;
+    currentDir = cfg.dirDefault;
+    document.getElementById("btn-dir").textContent = currentDir === "DESC" ? "↓" : "↑";
+
+    document.querySelectorAll(".tab").forEach(t =>
+      t.classList.toggle("active", t.dataset.tab === tab)
+    );
+
+    const isCloud = tab === "LLM_CLOUD_LATENCY";
+    ["lbl-provider", "f-provider"].forEach(id =>
+      document.getElementById(id).style.display = isCloud ? "" : "none"
+    );
+    // hide local filters on cloud tab
+    ["lbl-topology", "f-topology", "lbl-framework", "f-framework", "lbl-quant", "f-quant_format"].forEach(id =>
+      document.getElementById(id).style.display = isCloud ? "none" : ""
+    );
+
+    // reset filters
+    ["f-topology", "f-framework", "f-quant_format", "f-provider"].forEach(id =>
+      document.getElementById(id).value = ""
+    );
+
+    offset = 0;
+    buildHeader();
+    load();
+  }
+
+  // Wire events
+  document.querySelectorAll(".tab").forEach(t => {
+    t.addEventListener("click", () => switchTab(t.dataset.tab));
   });
 
-  document.getElementById("f-sort").addEventListener("change", e => {
-    currentSort = e.target.value;
-    offset = 0;
-    load();
+  ["f-topology", "f-framework", "f-quant_format", "f-provider"].forEach(id => {
+    document.getElementById(id).addEventListener("change", () => { offset = 0; load(); });
   });
 
   document.getElementById("btn-dir").addEventListener("click", () => {
     currentDir = currentDir === "DESC" ? "ASC" : "DESC";
     document.getElementById("btn-dir").textContent = currentDir === "DESC" ? "↓" : "↑";
     offset = 0;
+    buildHeader();
     load();
   });
 
-  document.getElementById("f-model").addEventListener("input", () => {
+  document.getElementById("q").addEventListener("input", () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => { offset = 0; load(); }, 300);
-  });
-
-  document.querySelectorAll("th.sortable").forEach(th => {
-    th.addEventListener("click", () => {
-      if (currentSort === th.dataset.col) {
-        currentDir = currentDir === "DESC" ? "ASC" : "DESC";
-        document.getElementById("btn-dir").textContent = currentDir === "DESC" ? "↓" : "↑";
-      } else {
-        document.querySelectorAll("th.sortable").forEach(t => t.classList.remove("active"));
-        th.classList.add("active");
-        currentSort = th.dataset.col;
-        document.getElementById("f-sort").value = currentSort;
-      }
-      offset = 0;
-      load();
-    });
   });
 
   document.getElementById("btn-prev").addEventListener("click", () => {
     if (offset >= LIMIT) { offset -= LIMIT; load(); }
   });
-
-  document.getElementById("btn-next").addEventListener("click", () => {
-    offset += LIMIT;
-    load();
-  });
+  document.getElementById("btn-next").addEventListener("click", () => { offset += LIMIT; load(); });
 
   async function load() {
-    const params = new URLSearchParams({ sort: currentSort, dir: currentDir, limit: LIMIT, offset });
+    const params = new URLSearchParams({
+      benchmark_type: currentTab,
+      sort: currentSort,
+      dir: currentDir,
+      limit: LIMIT,
+      offset,
+    });
 
-    const modelVal = document.getElementById("f-model").value.trim();
-    if (modelVal) params.set("model", modelVal);
+    const q = document.getElementById("q").value.trim();
+    if (q) params.set("q", q);
 
-    filterIds.forEach(id => {
-      const key = id.replace("f-", "");
+    [["f-topology","topology"],["f-framework","framework"],["f-quant_format","quant_format"],["f-provider","provider"]].forEach(([id, key]) => {
       const val = document.getElementById(id).value;
       if (val) params.set(key, val);
     });
@@ -306,10 +506,13 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       render(data.results ?? []);
+      const count = data.results?.length ?? 0;
       document.getElementById("status").textContent =
-        `Showing ${offset + 1}–${offset + (data.results?.length ?? 0)}`;
+        count ? `${offset + 1}–${offset + count} results` : "No results";
       document.getElementById("btn-prev").disabled = offset === 0;
-      document.getElementById("btn-next").disabled = (data.results?.length ?? 0) < LIMIT;
+      document.getElementById("btn-next").disabled = count < LIMIT;
+      document.getElementById("pager-info").textContent =
+        count ? `Page ${Math.floor(offset / LIMIT) + 1}` : "";
     } catch (err) {
       document.getElementById("status").textContent = `Error: ${err.message}`;
     }
@@ -317,44 +520,18 @@
 
   function render(rows) {
     const tbody = document.getElementById("tbody");
+    const cfg = TABS[currentTab];
     if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="10" class="muted" style="padding:2rem;text-align:center">No results</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="${cfg.cols.length}" class="muted" style="padding:2rem;text-align:center">No results</td></tr>`;
       return;
     }
-
     tbody.innerHTML = rows.map(r => {
-      const hw = r.topology === "UNIFIED"
-        ? `${r.cpu_model ?? "Apple"} (${r.ram_gb ?? "?"}GB)`
-        : r.gpu_model
-          ? `${r.gpu_model} (${r.vram_gb ?? "?"}GB)`
-          : r.cpu_model ?? "—";
-
-      const tps   = r.decode_tps  != null ? `<span class="tps">${r.decode_tps.toFixed(1)}</span>` : `<span class="muted">—</span>`;
-      const ttft  = r.ttft_ms     != null ? `<span class="ttft">${r.ttft_ms}</span>` : `<span class="muted">—</span>`;
-      const mem   = r.peak_memory_gb != null ? r.peak_memory_gb.toFixed(1) : `<span class="muted">—</span>`;
-      const ctx   = r.context_tokens ?? `<span class="muted">—</span>`;
-      const acc   = r.accuracy    != null ? `${(r.accuracy * 100).toFixed(1)}%` : `<span class="muted">—</span>`;
-      const quant = r.quant_format || r.quant_level
-        ? `<span class="tag">${[r.quant_format, r.quant_level].filter(Boolean).join(" ")}</span>`
-        : `<span class="muted">—</span>`;
-      const date  = r.submitted_at ? r.submitted_at.slice(0, 10) : "—";
-      const model = r.model_name ?? r.model_string ?? "—";
-
-      return `<tr>
-        <td title="${model}">${model.length > 28 ? model.slice(0, 26) + "…" : model}</td>
-        <td>${quant}</td>
-        <td title="${hw}">${hw.length > 24 ? hw.slice(0, 22) + "…" : hw}</td>
-        <td><span class="tag">${r.framework ?? "—"}</span></td>
-        <td>${tps}</td>
-        <td>${ttft}</td>
-        <td>${mem}</td>
-        <td class="muted">${ctx}</td>
-        <td>${acc}</td>
-        <td class="muted">${date}</td>
-      </tr>`;
+      const cells = cfg.render(r);
+      return `<tr>${cells.map(c => `<td>${c}</td>`).join("")}</tr>`;
     }).join("");
   }
 
+  buildHeader();
   load();
 </script>
 </body>

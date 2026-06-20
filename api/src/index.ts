@@ -114,6 +114,13 @@ async function handleList(url: URL, env: Env): Promise<Response> {
   addFilter("provider", "provider");
   addFilter("model_name", "model", "LIKE");
 
+  const q = p.get("q");
+  if (q) {
+    conditions.push("(model_name LIKE ? OR gpu_model LIKE ? OR cpu_model LIKE ? OR model_string LIKE ?)");
+    const likeQ = `%${q}%`;
+    values.push(likeQ, likeQ, likeQ, likeQ);
+  }
+
   const sortParam = p.get("sort") ?? "submitted_at";
   const sortCol = VALID_SORTS.has(sortParam) ? sortParam : "submitted_at";
   const dirParam = (p.get("dir") ?? "DESC").toUpperCase();
@@ -128,8 +135,9 @@ async function handleList(url: URL, env: Env): Promise<Response> {
     `SELECT id, submitted_at, submitter_id, setup_type,
             topology, cpu_model, ram_gb, gpu_model, vram_gb,
             framework, model_name, quant_format, quant_level, params_total_b,
-            provider, model_string, region, benchmark_type,
-            ttft_ms, decode_tps, peak_memory_gb, context_tokens, accuracy, benchmark_name
+            provider, model_string, region, observed_at, benchmark_type,
+            ttft_ms, decode_tps, peak_memory_gb, context_tokens,
+            accuracy, benchmark_name, cost_per_1m_tokens
      FROM submissions ${where}
      ORDER BY ${sortCol} ${sortDir}
      LIMIT ? OFFSET ?`
